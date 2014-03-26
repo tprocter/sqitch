@@ -25,6 +25,7 @@ BEGIN {
 
 ok my $sqitch = App::Sqitch->new(
     top_dir => Path::Class::Dir->new(qw(t sql)),
+    _engine => 'sqlite',
 ), 'Load a sqitch sqitch object';
 my $plan = App::Sqitch::Plan->new(sqitch => $sqitch, project => 'depend');
 

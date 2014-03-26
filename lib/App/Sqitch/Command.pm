@@ -17,7 +17,6 @@ has sqitch => (
     isa      => 'App::Sqitch',
     required => 1,
     handles  => [qw(
-        plan
         engine
         config_for_target
         config_for_target_strict

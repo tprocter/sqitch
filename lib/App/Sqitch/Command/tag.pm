@@ -41,7 +41,7 @@ sub execute {
         $tag->request_note( for => __ 'tag');
 
         # We good, write the plan file back out.
-        $plan->write_to( $sqitch->plan_file );
+        $plan->write_to( $plan->file );
         $self->info(__x(
             'Tagged "{change}" with {tag}',
             change => $tag->change->format_name,

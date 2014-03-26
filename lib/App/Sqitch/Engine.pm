@@ -8,6 +8,7 @@ use Try::Tiny;
 use Locale::TextDomain qw(App-Sqitch);
 use App::Sqitch::X qw(hurl);
 use List::Util qw(first max);
+use Path::Class;
 use URI::db;
 use namespace::autoclean;
 
@@ -124,7 +125,9 @@ has plan => (
     isa      => 'App::Sqitch::Plan',
     required => 1,
     lazy     => 1,
-    default  => sub { shift->sqitch->plan }
+    default  => sub {
+        App::Sqitch::Plan->new( plan_file => shift->plan_file );
+    },
 );
 
 has _variables => (
@@ -137,6 +140,112 @@ has _variables => (
         set_variables   => 'set',
         clear_variables => 'clear',
     },
+);
+
+has top_dir => (
+    is       => 'ro',
+    isa      => 'Path::Class::Dir',
+    required => 1,
+    lazy     => 1,
+    default => sub {
+        my $self = shift;
+        my $sqitch = $self->sqitch;
+        if (my $dir = $sqitch->top_dir) {
+            return $dir;
+        }
+
+        my $config = $sqitch->config;
+        my $key    = $self->key;
+        return dir(
+               $config->get( key => "core.$key.top_dir" )
+            || $config->get( key => 'core.top_dir' )
+            || ()
+        );
+    },
+);
+
+has plan_file => (
+    is       => 'ro',
+    isa      => 'Path::Class::File',
+    required => 1,
+    lazy     => 1,
+    default => sub {
+        my $self = shift;
+        my $sqitch = $self->sqitch;
+        if (my $file = $sqitch->plan_file) {
+            return $file;
+        }
+
+        my $config = $sqitch->config;
+        my $key    = $self->key;
+        if (my $file = $config->get( key => "core.$key.plan_file" )
+                    || $config->get( key => 'core.plan_file' )
+        ) {
+            return file $file;
+        }
+
+        return $self->top_dir->file('sqitch.plan')->cleanup;
+    },
+);
+
+my $get_dir = sub {
+    my ($self, $dname) = @_;
+    my $sqitch = $self->sqitch;
+    my $meth = "$dname\_dir";
+    if (my $dir = $sqitch->$meth) {
+        return $dir;
+    }
+
+    my $config = $sqitch->config;
+    my $key    = $self->key;
+    if (my $dir = $config->get( key => "core.$key.$dname" )) {
+        return dir $dir;
+    }
+
+    if (my $dir = $config->get( key => "core.$dname" )) {
+        return dir $dir;
+    }
+
+    $self->top_dir->subdir($dname)->cleanup;
+};
+
+has deploy_dir => (
+    is       => 'ro',
+    isa      => 'Path::Class::Dir',
+    required => 1,
+    lazy     => 1,
+    default  => sub { $get_dir->(shift, 'deploy') },
+);
+
+has revert_dir => (
+    is       => 'ro',
+    isa      => 'Path::Class::Dir',
+    required => 1,
+    lazy     => 1,
+    default  => sub { $get_dir->(shift, 'revert') },
+);
+
+has verify_dir => (
+    is       => 'ro',
+    isa      => 'Path::Class::Dir',
+    required => 1,
+    lazy     => 1,
+    default  => sub { $get_dir->(shift, 'verify') },
+);
+
+has extension => (
+    is      => 'ro',
+    isa     => 'Str',
+    lazy    => 1,
+    default => sub {
+        my $self = shift;
+        my $sqitch = $self->sqitch;
+        return $sqitch->extension || do {
+            my $config = $sqitch->config;
+            my $key    = $self->key;
+            $config->get( key => "core.$key.extension" )
+                || $config->get( key => 'core.extension' )
+        } || 'sql';
 );
 
 # * If not passed

@@ -117,13 +117,13 @@ sub execute {
     );
 
     # We good, write the plan file back out.
-    $plan->write_to( $sqitch->plan_file );
+    $plan->write_to( $plan->file );
 
     # Let the user knnow what to do.
     $self->info(__x(
         'Added "{change}" to {file}.',
         change => $reworked->format_op_name_dependencies,
-        file   => $sqitch->plan_file,
+        file   => $plan->file,
     ));
     $self->info(__n(
         'Modify this file as appropriate:',

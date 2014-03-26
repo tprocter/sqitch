@@ -43,7 +43,7 @@ $ENV{SQITCH_SYSTEM_CONFIG} = 'nonexistent.sys';
 
 ##############################################################################
 # Test options and configuration.
-my $sqitch = App::Sqitch->new(top_dir => dir 'init.mkdir');
+my $sqitch = App::Sqitch->new(_engine => 'sqlite', top_dir => dir 'init.mkdir');
 isa_ok my $init = $CLASS->new( sqitch => $sqitch ), $CLASS, 'New init object';
 
 can_ok $init, qw(uri options configure);
@@ -61,8 +61,9 @@ isa_ok $CLASS->configure({}, { uri => 'http://example.com' })->{uri}, 'URI',
 ##############################################################################
 # Test make_directories.
 can_ok $init, 'make_directories';
+my $engine = $sqitch->engine;
 for my $attr (map { "$_\_dir"} qw(top deploy revert verify)) {
-    dir_not_exists_ok $sqitch->$attr;
+    dir_not_exists_ok $engine->$attr;
 }
 
 my $top_dir_string = $sqitch->top_dir->stringify;
@@ -70,7 +71,7 @@ END { remove_tree $top_dir_string }
 
 ok $init->make_directories, 'Make the directories';
 for my $attr (map { "$_\_dir"} qw(top deploy revert verify)) {
-    dir_exists_ok $sqitch->$attr;
+    dir_exists_ok $engine->$attr;
 }
 my $sep = dir('')->stringify;
 is_deeply +MockOutput->get_info, [
@@ -83,9 +84,9 @@ ok $init->make_directories, 'Make the directories again';
 is_deeply +MockOutput->get_info, [], 'Nothing should have been sent to info';
 
 # Delete one of them.
-remove_tree $sqitch->revert_dir->stringify;
+remove_tree $sqitch->engine->revert_dir->stringify;
 ok $init->make_directories, 'Make the directories once more';
-dir_exists_ok $sqitch->revert_dir, 'revert dir exists again';
+dir_exists_ok $engine->revert_dir, 'revert dir exists again';
 is_deeply +MockOutput->get_info, [
     [__x 'Created {file}', file => $sqitch->revert_dir . $sep],
 ], 'Should have noted creation of revert dir';
@@ -510,7 +511,7 @@ ok $init->execute('foofoo'), 'Execute!';
 
 # Should have directories.
 for my $attr (map { "$_\_dir"} qw(top deploy revert verify)) {
-    dir_exists_ok $sqitch->$attr;
+    dir_exists_ok $engine->$attr;
 }
 
 # Should have config and plan.

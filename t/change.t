@@ -64,7 +64,7 @@ can_ok $CLASS, qw(
     note_prompt
 );
 
-my $sqitch = App::Sqitch->new( top_dir => dir('test-change') );
+my $sqitch = App::Sqitch->new( top_dir => dir('test-change'), _engine => 'sqlite' );
 my $plan   = App::Sqitch::Plan->new(sqitch => $sqitch);
 make_path 'test-change';
 END { remove_tree 'test-change' };
@@ -92,11 +92,12 @@ my $tag = App::Sqitch::Plan::Tag->new(
 
 is_deeply [ $change->path_segments ], ['foo.sql'],
     'path_segments should have the file name';
-is $change->deploy_file, $sqitch->deploy_dir->file('foo.sql'),
+my $engine = $sqitch->engine;
+is $change->deploy_file, $engine->deploy_dir->file('foo.sql'),
     'The deploy file should be correct';
-is $change->revert_file, $sqitch->revert_dir->file('foo.sql'),
+is $change->revert_file, $engine->revert_dir->file('foo.sql'),
     'The revert file should be correct';
-is $change->verify_file, $sqitch->verify_dir->file('foo.sql'),
+is $change->verify_file, $engine->verify_dir->file('foo.sql'),
     'The verify file should be correct';
 ok !$change->is_reworked, 'The change should not be reworked';
 is_deeply [ $change->path_segments ], ['foo.sql'],
@@ -106,8 +107,8 @@ is_deeply [ $change->path_segments ], ['foo.sql'],
 ok $change->add_rework_tags($tag), 'Add a rework tag';
 is_deeply [$change->rework_tags], [$tag], 'Reworked tag should be stored';
 ok $change->is_reworked, 'The change should be reworked';
-$sqitch->deploy_dir->mkpath;
-$sqitch->deploy_dir->file('foo@alpha.sql')->touch;
+$engine->deploy_dir->mkpath;
+$engine->deploy_dir->file('foo@alpha.sql')->touch;
 is_deeply [ $change->path_segments ], ['foo@alpha.sql'],
     'path_segments should now include suffix';
 
@@ -283,11 +284,11 @@ my @fn = ('yo', 'howdy@beta.sql');
 $change2->add_rework_tags($tag2);
 is_deeply [ $change2->path_segments ], \@fn,
     'path_segments should include directories';
-is $change2->deploy_file, $sqitch->deploy_dir->file(@fn),
+is $change2->deploy_file, $engine->deploy_dir->file(@fn),
     'The deploy file should include the suffix';
-is $change2->revert_file, $sqitch->revert_dir->file(@fn),
+is $change2->revert_file, $engine->revert_dir->file(@fn),
     'The revert file should include the suffix';
-is $change2->verify_file, $sqitch->verify_dir->file(@fn),
+is $change2->verify_file, $engine->verify_dir->file(@fn),
     'The verify file should include the suffix';
 
 ##############################################################################
@@ -335,6 +336,7 @@ my $file = file qw(t plans multi.plan);
 my $sqitch2 = App::Sqitch->new(
     top_dir   => dir('test-change'),
     plan_file => $file,
+    _engine => 'sqlite',
 );
 my $plan2 = $sqitch2->plan;
 ok $change2 = $CLASS->new(

@@ -101,7 +101,7 @@ has _path_segments => (
         my $ext  = '.' . $self->sqitch->extension;
         if (my @rework_tags = $self->rework_tags) {
             # Determine suffix based on the first one found in the deploy dir.
-            my $dir = $self->sqitch->deploy_dir;
+            my $dir = $self->sqitch->engine->deploy_dir;
             my $bn  = pop @path;
             my $first;
             for my $tag (@rework_tags) {
@@ -213,17 +213,17 @@ sub dependencies {
 
 sub deploy_file {
     my $self   = shift;
-    $self->sqitch->deploy_dir->file( $self->path_segments );
+    $self->sqitch->engine->deploy_dir->file( $self->path_segments );
 }
 
 sub revert_file {
     my $self   = shift;
-    $self->sqitch->revert_dir->file( $self->path_segments );
+    $self->sqitch->engine->revert_dir->file( $self->path_segments );
 }
 
 sub verify_file {
     my $self   = shift;
-    $self->sqitch->verify_dir->file( $self->path_segments );
+    $self->sqitch->engine->verify_dir->file( $self->path_segments );
 }
 
 sub script_file {
@@ -231,7 +231,7 @@ sub script_file {
     if ( my $meth = $self->can("$name\_file") ) {
         return $self->$meth;
     }
-    return $self->sqitch->top_dir->subdir($name)->cleanup->file(
+    return $self->sqitch->engine->top_dir->subdir($name)->cleanup->file(
         $self->path_segments
     );
 }

@@ -48,7 +48,7 @@ can_ok $CLASS, qw(
 
 ##############################################################################
 # Defaults.
-isa_ok my $sqitch = $CLASS->new, $CLASS, 'A new object';
+isa_ok my $sqitch = $CLASS->new(_engine => 'sqlite'), $CLASS, 'A new object';
 
 for my $attr (qw(
     db_client
@@ -60,14 +60,14 @@ for my $attr (qw(
     is $sqitch->$attr, undef, "$attr should be undef";
 }
 
-is $sqitch->plan_file, $sqitch->top_dir->file('sqitch.plan')->cleanup,
+is $sqitch->plan_file, $sqitch->engine->top_dir->file('sqitch.plan')->cleanup,
     'Default plan file should be $top_dir/sqitch.plan';
 is $sqitch->verbosity, 1, 'verbosity should be 1';
 is $sqitch->extension, 'sql', 'Default extension should be sql';
-is $sqitch->top_dir, dir(), 'Default top_dir should be .';
-is $sqitch->deploy_dir, dir(qw(deploy)), 'Default deploy_dir should be ./sql/deploy';
-is $sqitch->revert_dir, dir(qw(revert)), 'Default revert_dir should be ./sql/revert';
-is $sqitch->verify_dir, dir(qw(verify)), 'Default verify_dir should be ./sql/verify';
+is $sqitch->top_dir, undef, 'Default top_dir should be .';
+is $sqitch->deploy_dir, undef, 'Default deploy_dir should be .';
+is $sqitch->revert_dir, undef, 'Default revert_dir should be .';
+is $sqitch->verify_dir, undef, 'Default verify_dir should be .';
 isa_ok $sqitch->plan, 'App::Sqitch::Plan';
 ok $sqitch->user_name, 'Default user_name should be set from system';
 is $sqitch->user_email, do {
@@ -76,6 +76,7 @@ is $sqitch->user_email, do {
 }, 'Default user_email should be set from system';
 
 # Test engine_key.
+$sqitch = $CLASS->new;
 throws_ok { $sqitch->engine_key } 'App::Sqitch::X',
     'Should get exception for no engine_key';
 is $@->ident, 'core', 'No engine_key error ident should be "core"';

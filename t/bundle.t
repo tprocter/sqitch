@@ -23,7 +23,7 @@ $ENV{SQITCH_SYSTEM_CONFIG} = 'nonexistent.sys';
 
 my $CLASS = 'App::Sqitch::Command::bundle';
 
-ok my $sqitch = App::Sqitch->new, 'Load a sqitch object';
+ok my $sqitch = App::Sqitch->new(_engine => 'sqlite'), 'Load a sqitch object';
 my $config = $sqitch->config;
 isa_ok my $bundle = App::Sqitch::Command->load({
     sqitch  => $sqitch,

@@ -40,11 +40,10 @@ my %reserved = map { $_ => undef } qw(ROOT HEAD FIRST LAST);
 
 sub name_regex { $name_re }
 
-has sqitch => (
+has file => (
     is       => 'ro',
-    isa      => 'App::Sqitch',
+    isa      => 'Path::Class::File',
     required => 1,
-    weak_ref => 1,
 );
 
 has _plan => (
@@ -114,7 +113,7 @@ sub parse {
 
 sub load {
     my $self = shift;
-    my $file = $self->sqitch->plan_file;
+    my $file = $self->file;
     my $fh = shift || do {
         hurl plan => __x('Plan file {file} does not exist', file => $file)
             unless -e $file;
@@ -552,7 +551,7 @@ sub check_changes {
                 $max_delta,
                 change => $change,
                 num    => $max_delta,
-                plan   => $self->sqitch->plan_file,
+                plan   => $self->file,
             );
         }
     }

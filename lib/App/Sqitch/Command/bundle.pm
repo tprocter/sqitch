@@ -40,7 +40,7 @@ has dest_top_dir => (
     required => 1,
     default  => sub {
         my $self = shift;
-        dir $self->dest_dir, $self->sqitch->top_dir->relative;
+        dir $self->dest_dir, $self->sqitch->engine->top_dir->relative;
     },
 );
 
@@ -51,7 +51,7 @@ has dest_deploy_dir => (
     lazy     => 1,
     default  => sub {
         my $self = shift;
-        dir $self->dest_dir, $self->sqitch->deploy_dir->relative;
+        dir $self->dest_dir, $self->sqitch->engine->deploy_dir->relative;
     },
 );
 
@@ -62,7 +62,7 @@ has dest_revert_dir => (
     lazy     => 1,
     default  => sub {
         my $self = shift;
-        dir $self->dest_dir, $self->sqitch->revert_dir->relative;
+        dir $self->dest_dir, $self->sqitch->engine->revert_dir->relative;
     },
 );
 
@@ -73,7 +73,7 @@ has dest_verify_dir => (
     lazy     => 1,
     default  => sub {
         my $self = shift;
-        dir $self->dest_dir, $self->sqitch->verify_dir->relative;
+        dir $self->dest_dir, $self->sqitch->engine->verify_dir->relative;
     },
 );
 
@@ -170,7 +170,7 @@ sub bundle_plan {
     my $sqitch = $self->sqitch;
     if (!defined $self->from && !defined $self->to) {
         $self->info(__ 'Writing plan');
-        my $file = $self->sqitch->plan_file;
+        my $file = $self->sqitch->engine->plan_file;
         return $self->_copy_if_modified(
             $file,
             $self->dest_top_dir->file( $file->basename ),
@@ -184,7 +184,7 @@ sub bundle_plan {
     ));
 
     $sqitch->plan->write_to(
-        $self->dest_top_dir->file( $sqitch->plan_file->basename ),
+        $self->dest_top_dir->file( $sqitch->engine->plan_file->basename ),
         $self->from,
         $self->to,
     );
@@ -192,7 +192,7 @@ sub bundle_plan {
 
 sub bundle_scripts {
     my $self = shift;
-    my $top  = $self->sqitch->top_dir;
+    my $top  = $self->dest_top_dir;
     my $plan = $self->plan;
     my $dir  = $self->dest_dir;
 

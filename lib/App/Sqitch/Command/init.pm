@@ -65,9 +65,9 @@ sub configure {
 
 sub make_directories {
     my $self   = shift;
-    my $sqitch = $self->sqitch;
+    my $engine = $self->sqitch->engine;
     for my $attr (qw(deploy_dir revert_dir verify_dir)) {
-        $self->_mkdir( $sqitch->$attr );
+        $self->_mkdir( $engine->$attr );
     }
     return $self;
 }
@@ -93,7 +93,7 @@ sub _mkdir {
 sub write_plan {
     my ( $self, $project ) = @_;
     my $sqitch = $self->sqitch;
-    my $file   = $sqitch->plan_file;
+    my $file   = $sqitch->engine->plan_file;
     return $self if -f $file;
     $self->_mkdir( $file->dir ) unless -d $file->dir;
 
@@ -121,7 +121,7 @@ sub write_plan {
 sub write_config {
     my $self   = shift;
     my $sqitch = $self->sqitch;
-    my $meta   = $sqitch->meta;
+    my $meta   = $sqitch->engine->meta;
     my $config = $sqitch->config;
     my $file   = $config->local_file;
     if ( -f $file ) {

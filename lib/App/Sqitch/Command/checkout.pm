@@ -79,7 +79,7 @@ sub execute {
     # Load the branch plan from Git, assuming the same path.
     my $to_plan = App::Sqitch::Plan->new( sqitch => $sqitch )->parse(
         # XXX Handle missing file/no contents.
-        scalar $sqitch->capture( $git, 'show', "$branch:" . $sqitch->plan_file)
+        scalar $sqitch->capture( $git, 'show', "$branch:" . $sqitch->engine->plan_file)
     );
 
     # Find the last change the plans have in common.

@@ -309,11 +309,12 @@ sub execute {
     $self->_add( $name, $files[$i++], $tmpl->{$_} ) for @scripts;
 
     # We good, write the plan file back out.
-    $plan->write_to( $sqitch->plan_file );
+    my $plan_file = $sqitch->engine->plan_file;
+    $plan->write_to( $plan_file );
     $self->info(__x(
         'Added "{change}" to {file}',
         change => $change->format_op_name_dependencies,
-        file   => $sqitch->plan_file,
+        file   => $plan_file,
     ));
 
     # Let 'em at it.

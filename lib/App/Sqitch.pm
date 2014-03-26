@@ -51,22 +51,19 @@ BEGIN {
     bind_textdomain_filter 'App-Sqitch' => \&Encode::decode_utf8;
 }
 
-# Okay to loas Sqitch classes now that typess are created.
+# Okay to load Sqitch classes now that types are created.
 use App::Sqitch::Config;
 use App::Sqitch::Command;
 use App::Sqitch::Plan;
 
 has plan_file => (
+    is  => 'ro',
+    isa => 'Maybe[Path::Class::File]',
+);
+
+has plan_file => (
     is       => 'ro',
-    required => 1,
-    lazy     => 1,
-    default  => sub {
-        my $self = shift;
-        if ( my $fn = $self->config->get( key => 'core.plan_file') ) {
-            return file $fn;
-        }
-        return $self->top_dir->file('sqitch.plan')->cleanup;
-    }
+    isa      => 'Maybe[Path::Class::File]',
 );
 
 has plan => (
@@ -75,7 +72,7 @@ has plan => (
     required => 1,
     lazy     => 1,
     default  => sub {
-        App::Sqitch::Plan->new( sqitch => shift );
+        shift->engine->plan;
     },
 );
 
@@ -167,53 +164,23 @@ has db_host     => ( is => 'ro', isa => 'Str' );
 has db_port     => ( is => 'ro', isa => 'Int' );
 
 has top_dir => (
-    is       => 'ro',
-    isa      => 'Maybe[Path::Class::Dir]',
-    required => 1,
-    lazy     => 1,
-    default => sub { dir shift->config->get( key => 'core.top_dir' ) || () },
+    is  => 'ro',
+    isa => 'Maybe[Path::Class::Dir]',
 );
 
 has deploy_dir => (
-    is       => 'ro',
-    isa      => 'Path::Class::Dir',
-    required => 1,
-    lazy     => 1,
-    default  => sub {
-        my $self = shift;
-        if ( my $dir = $self->config->get( key => 'core.deploy_dir' ) ) {
-            return dir $dir;
-        }
-        $self->top_dir->subdir('deploy')->cleanup;
-    },
+    is  => 'ro',
+    isa => 'Maybe[Path::Class::Dir]',
 );
 
 has revert_dir => (
-    is       => 'ro',
-    isa      => 'Path::Class::Dir',
-    required => 1,
-    lazy     => 1,
-    default  => sub {
-        my $self = shift;
-        if ( my $dir = $self->config->get( key => 'core.revert_dir' ) ) {
-            return dir $dir;
-        }
-        $self->top_dir->subdir('revert')->cleanup;
-    },
+    is  => 'ro',
+    isa => 'Maybe[Path::Class::Dir]',
 );
 
 has verify_dir => (
-    is       => 'ro',
-    isa      => 'Path::Class::Dir',
-    required => 1,
-    lazy     => 1,
-    default  => sub {
-        my $self = shift;
-        if ( my $dir = $self->config->get( key => 'core.verify_dir' ) ) {
-            return dir $dir;
-        }
-        $self->top_dir->subdir('verify')->cleanup;
-    },
+    is  => 'ro',
+    isa => 'Maybe[Path::Class::Dir]',
 );
 
 has extension => (

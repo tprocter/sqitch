@@ -266,7 +266,7 @@ sub emit_status {
     my $idx = $plan->index_of( $state->{change_id} ) // do {
         $self->vent(__x(
             'Cannot find this change in {file}',
-            file => $self->sqitch->plan_file
+            file => $plan->file
         ));
         hurl status => __ 'Make sure you are connected to the proper '
                         . 'database for this project.';
