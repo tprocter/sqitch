@@ -246,6 +246,7 @@ has extension => (
             $config->get( key => "core.$key.extension" )
                 || $config->get( key => 'core.extension' )
         } || 'sql';
+    },
 );
 
 # * If not passed
